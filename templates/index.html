@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-col h-full relative bg-gray-50/50">
+
+    <div class="px-6 pt-8 pb-4 flex justify-between items-center bg-white">
+        <div>
+            <p class="text-sm text-gray-500">반가워요</p>
+            <h2 class="text-xl font-bold text-gray-900">{{ session.nickname }}님</h2>
+        </div>
+        <a href="/logout" class="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 transition">
+            <i data-lucide="log-out" class="w-5 h-5"></i>
+        </a>
+    </div>
+
+</div>
+{% endblock %}
