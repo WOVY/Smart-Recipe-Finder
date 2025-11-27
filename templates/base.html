@@ -1,32 +1,93 @@
 <!DOCTYPE html>
 <html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>냉장고를 털어라</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
-        rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-    </style>
-</head>
+  </head>
 
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+  <body class="text-gray-800 pb-20">
+    <!-- 헤더 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+      <div class="max-w-md mx-auto px-4 h-16 flex items-center justify-between">
+        <a
+          href="/"
+          class="flex items-center gap-2 font-bold text-xl text-orange-600"
+        >
+          <i data-lucide="chef-hat"></i> 냉장고를 털어라
+        </a>
+        {% if session.user_id %}
+        <div class="flex items-center gap-2 text-sm">
+          <!-- 닉네임 클릭 시 마이페이지 연결 -->
+          <a href="/mypage"
+            ><span class="font-medium">{{ session.nickname }}</span>님</a
+          >
+          <a href="/logout" class="text-gray-400 hover:text-gray-600"
+            ><i data-lucide="log-out" class="w-5 h-5"></i
+          ></a>
+        </div>
+        {% endif %}
+      </div>
+    </header>
 
-    <!-- 메인 콘텐츠 -->
-    <main class="flex-1 max-w-md mx-auto w-full bg-white min-h-screen shadow-xl overflow-hidden relative">
-        {% block content %}{% endblock %}
+    <!-- 메인 컨텐츠 -->
+    <main class="max-w-md mx-auto p-4 min-h-screen">
+      <!-- 플래시 메시지 (알림) -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="mb-4 p-4 rounded-lg shadow-sm flex items-center gap-2 alert-dismissible
+                    {{ 'bg-green-100 text-green-700' if category == 'success' else 'bg-red-100 text-red-700' }}"
+      >
+        <i
+          data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' }}"
+          class="w-5 h-5"
+        ></i>
+        {{ message }}
+      </div>
+      {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
     </main>
 
-    <script>
-        lucide.createIcons();
-    </script>
-</body>
+    <!-- 하단 네비게이션 (로그인 시에만 표시) -->
+    {% if session.user_id %}
+    <nav
+      class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50"
+    >
+      <div class="max-w-md mx-auto flex justify-around py-3">
+        <a
+          href="/"
+          class="flex flex-col items-center gap-1 text-gray-400 hover:text-orange-500 {{ 'text-orange-500' if request.path == '/' }}"
+        >
+          <i data-lucide="home" class="w-6 h-6"></i>
+          <span class="text-[10px] font-medium">홈</span>
+        </a>
+        <a
+          href="/fridge"
+          class="flex flex-col items-center gap-1 text-gray-400 hover:text-orange-500 {{ 'text-orange-500' if 'fridge' in request.path }}"
+        >
+          <i data-lucide="refrigerator" class="w-6 h-6"></i>
+          <span class="text-[10px] font-medium">냉장고</span>
+        </a>
+        <a
+          href="/search"
+          class="flex flex-col items-center gap-1 text-gray-400 hover:text-orange-500 {{ 'text-orange-500' if 'search' in request.path }}"
+        >
+          <i data-lucide="search" class="w-6 h-6"></i>
+          <span class="text-[10px] font-medium">검색</span>
+        </a>
+      </div>
+    </nav>
+    {% endif %}
 
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+      lucide.createIcons();
+    </script>
+  </body>
 </html>

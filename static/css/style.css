@@ -1,0 +1,21 @@
+/* 구글 폰트 적용 (선택사항) */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f9fafb;
+    /* gray-50 */
+}
+
+/* 스크롤바 숨기기 (Chrome, Safari, Opera) */
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* 스크롤바 숨기기 (IE, Edge, Firefox) */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}

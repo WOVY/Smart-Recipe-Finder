@@ -1,16 +1,75 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="flex flex-col h-full relative bg-gray-50/50">
+<div class="space-y-6 pb-10">
 
-    <div class="px-6 pt-8 pb-4 flex justify-between items-center bg-white">
-        <div>
-            <p class="text-sm text-gray-500">반가워요</p>
-            <h2 class="text-xl font-bold text-gray-900">{{ session.nickname }}님</h2>
+    <!-- 배너 -->
+    <div
+        class="bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h2 class="text-2xl font-bold mb-1">냉장고 파먹기 🥘</h2>
+            <p class="text-orange-50 text-sm mb-4">내 재료로 만들 수 있는 요리 찾기</p>
+            <a href="/search?mode=fridge"
+                class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold hover:bg-white/30 transition inline-flex items-center gap-1">
+                바로가기 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
         </div>
-        <a href="/logout" class="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 transition">
-            <i data-lucide="log-out" class="w-5 h-5"></i>
+        <i data-lucide="utensils" class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10"></i>
+    </div>
+
+    <!-- 메뉴 그리드 -->
+    <div class="grid grid-cols-2 gap-4">
+        <a href="/fridge"
+            class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:shadow-md transition group">
+            <div
+                class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
+                <span class="text-2xl">🧊</span>
+            </div>
+            <h3 class="font-bold text-gray-800">나의 냉장고</h3>
+            <p class="text-xs text-gray-500 mt-1">재료 관리하기</p>
         </a>
+        <a href="/search"
+            class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:shadow-md transition group">
+            <div
+                class="bg-green-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
+                <span class="text-2xl">🔍</span>
+            </div>
+            <h3 class="font-bold text-gray-800">레시피 검색</h3>
+            <p class="text-xs text-gray-500 mt-1">조건별 찾아보기</p>
+        </a>
+    </div>
+
+    <!-- 즐겨찾기 바로가기 -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                <i data-lucide="heart" class="w-4 h-4 text-red-500 fill-current"></i> 나의 즐겨찾기
+            </h3>
+            <a href="/search?mode=favorite" class="text-xs text-gray-500 hover:text-orange-500">전체보기</a>
+        </div>
+        <p class="text-sm text-gray-400">저장된 레시피를 확인해보세요.</p>
+    </div>
+    <!-- 내가 쓴 레시피 -->
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                <i data-lucide="edit-3" class="w-4 h-4 text-orange-500"></i> 내가 작성한 레시피
+            </h3>
+            <a href="/search?mode=favorite" class="text-xs text-gray-500 hover:text-orange-500">전체보기</a>
+        </div>
+        <p class="text-sm text-gray-400">작성한 레시피를 확인해보세요.</p>
+    </div>
+    <!-- 내가 쓴 댓글 -->
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                <i data-lucide="message-circle" class="w-4 h-4 text-blue-500"></i> 내가 작성한 댓글
+            </h3>
+            <a href="/search?mode=favorite" class="text-xs text-gray-500 hover:text-orange-500">전체보기</a>
+        </div>
+        <p class="text-sm text-gray-400">작성한 댓글을 확인해보세요.</p>
     </div>
 
 </div>
