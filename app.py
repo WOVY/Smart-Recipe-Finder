@@ -8,7 +8,17 @@ app.config.from_object(config)
 @app.route('/')
 def index():
     if 'user_id' in session:
-        return render_template('index.html')
+        user_id = session['user_id']
+        # DB에서 데이터 가져오기
+        my_recipes = db.get_my_recipes(user_id)
+        my_comments = db.get_my_comments(user_id)
+        my_favorites = db.get_my_favorites(user_id)
+        
+        # HTML에 데이터 전달
+        return render_template('index.html', 
+                             my_recipes=my_recipes, 
+                             my_comments=my_comments, 
+                             my_favorites=my_favorites)
     return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])

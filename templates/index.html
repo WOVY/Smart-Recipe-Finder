@@ -1,17 +1,130 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<div class="flex flex-col h-full relative bg-gray-50/50">
-
-    <div class="px-6 pt-8 pb-4 flex justify-between items-center bg-white">
-        <div>
-            <p class="text-sm text-gray-500">반가워요</p>
-            <h2 class="text-xl font-bold text-gray-900">{{ session.nickname }}님</h2>
-        </div>
-        <a href="/logout" class="bg-gray-100 p-2 rounded-full text-gray-500 hover:bg-gray-200 transition">
-            <i data-lucide="log-out" class="w-5 h-5"></i>
-        </a>
+{% extends 'base.html' %} {% block content %}
+<div class="space-y-6 pb-10">
+  <div
+    class="bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
+  >
+    <div class="relative z-10">
+      <h2 class="text-2xl font-bold mb-1">냉장고 파먹기 🥘</h2>
+      <p class="text-orange-50 text-sm mb-4">
+        내 재료로 만들 수 있는 요리 찾기
+      </p>
+      <a
+        href="/search?mode=fridge"
+        class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold hover:bg-white/30 transition inline-flex items-center gap-1"
+      >
+        바로가기 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </a>
     </div>
+    <i
+      data-lucide="utensils"
+      class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10"
+    ></i>
+  </div>
 
+  <div class="grid grid-cols-2 gap-4">
+    <a
+      href="/fridge"
+      class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:shadow-md transition group"
+    >
+      <div
+        class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition"
+      >
+        <span class="text-2xl">🧊</span>
+      </div>
+      <h3 class="font-bold text-gray-800">나의 냉장고</h3>
+      <p class="text-xs text-gray-500 mt-1">재료 관리하기</p>
+    </a>
+    <a
+      href="/search"
+      class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:shadow-md transition group"
+    >
+      <div
+        class="bg-green-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition"
+      >
+        <span class="text-2xl">🔍</span>
+      </div>
+      <h3 class="font-bold text-gray-800">레시피 검색</h3>
+      <p class="text-xs text-gray-500 mt-1">조건별 찾아보기</p>
+    </a>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="font-bold text-gray-800 flex items-center gap-2">
+        <i data-lucide="heart" class="w-4 h-4 text-red-500 fill-current"></i>
+        나의 즐겨찾기
+      </h3>
+      <a
+        href="/search?mode=favorite"
+        class="text-xs text-gray-500 hover:text-orange-500"
+        >전체보기</a
+      >
+    </div>
+    <p class="text-sm text-gray-400">저장된 레시피를 확인해보세요.</p>
+  </div>
+
+  <div class="border-t border-gray-200 my-6"></div>
+  <div>
+    <h3 class="font-bold text-gray-800 text-lg mb-3 px-1">📝 내가 쓴 레시피</h3>
+    {% if my_recipes %}
+    <div class="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+      {% for recipe in my_recipes %}
+      <a
+        href="/recipe/{{ recipe.recipe_id }}"
+        class="min-w-[140px] bg-white p-3 rounded-xl shadow-sm border border-gray-100 block hover:border-orange-200 transition"
+      >
+        <div class="font-bold text-gray-800 text-sm line-clamp-1 mb-1">
+          {{ recipe.title }}
+        </div>
+        <div class="text-xs text-gray-400">
+          {{ recipe.created_date.strftime('%Y-%m-%d') }}
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-400 px-1">아직 작성한 레시피가 없습니다.</p>
+    {% endif %}
+  </div>
+
+  <div>
+    <h3 class="font-bold text-gray-800 text-lg mb-3 px-1">💬 내가 쓴 댓글</h3>
+    <div class="space-y-3">
+      {% if my_comments %} {% for comm in my_comments %}
+      <a
+        href="/recipe/{{ comm.recipe_id }}"
+        class="block bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:bg-gray-50 transition"
+      >
+        <div class="text-sm text-gray-800 mb-2">"{{ comm.content }}"</div>
+        <div class="flex items-center gap-2 text-xs text-gray-400">
+          <span
+            class="bg-gray-100 px-2 py-0.5 rounded text-gray-600 font-medium truncate max-w-[150px]"
+            >{{ comm.title }}</span
+          >
+          <span>• {{ comm.created_date.strftime('%m-%d') }}</span>
+        </div>
+      </a>
+      {% endfor %} {% else %}
+      <p class="text-sm text-gray-400 px-1">작성한 댓글이 없습니다.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div>
+    <h3 class="font-bold text-gray-800 text-lg mb-3 px-1">❤️ 즐겨찾기 목록</h3>
+    <div class="grid grid-cols-1 gap-2">
+      {% if my_favorites %} {% for fav in my_favorites %}
+      <a
+        href="/recipe/{{ fav.recipe_id }}"
+        class="bg-white p-3 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center hover:bg-orange-50 transition"
+      >
+        <span class="font-medium text-gray-800 text-sm">{{ fav.title }}</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-300"></i>
+      </a>
+      {% endfor %} {% else %}
+      <p class="text-sm text-gray-400 px-1">즐겨찾기한 레시피가 없습니다.</p>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}
