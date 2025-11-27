@@ -37,6 +37,9 @@ def register_user(user_id, password, nickname):
         print(f"회원가입 실패: {e}")
         conn.rollback()
         return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
 
 def login_user(user_id, password):
     conn = get_db_conn()
