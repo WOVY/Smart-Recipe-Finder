@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-4">
+    <h2 class="text-xl font-bold text-gray-800">나의 냉장고 <span class="text-sm font-normal text-gray-500">({{
+            ingredients|length }})</span></h2>
+</div>
+
+<!-- 재료 추가 폼 -->
+<form action="{{ url_for('fridge') }}" method="post"
+    class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex gap-2">
+    <input type="text" name="name" placeholder="재료명 (예: 계란)" required
+        class="w-16 flex-1 p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+    <input type="text" name="quantity" placeholder="수량"
+        class="w-16 p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500">
+    <button type="submit"
+        class="bg-gray-900 text-white w-12 rounded-xl flex items-center justify-center hover:bg-gray-700 transition">
+        <i data-lucide="plus" class="w-5 h-5"></i>
+    </button>
+</form>
+
+<!-- 재료 목록 -->
+<div class="grid grid-cols-2 gap-3">
+    {% for ing in ingredients %}
+    <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm relative group">
+        <div class="flex justify-between items-start">
+            <div>
+                <h4 class="font-bold text-gray-800">{{ ing.ingredientname }}</h4>
+                <p class="text-xs text-gray-500 mt-1">{{ ing.quantity }}</p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-span-2 text-center py-10 text-gray-400">
+        <p>냉장고가 비어있습니다.<br>재료를 추가해보세요!</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

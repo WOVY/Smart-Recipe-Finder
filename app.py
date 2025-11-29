@@ -53,6 +53,24 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+@app.route('/fridge', methods=['GET', 'POST'])
+def fridge():
+    if 'user_id' not in session: return redirect(url_for('login'))
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        qty = request.form.get('quantity')
+        if name:
+            if db.add_ingredient(session['user_id'], name, qty):
+                flash(f"'{name}' 추가 완료", 'success')
+            else:
+                flash('재료 추가 실패', 'error')
+        return redirect(url_for('fridge'))
+    
+    ingredients = db.get_user_ingredients(session['user_id'])
+
+    return render_template('fridge.html', ingredients=ingredients)
+
 if __name__ == '__main__':
     app.run(debug=True)
     

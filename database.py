@@ -60,7 +60,69 @@ def login_user(user_id, password):
         if cursor: cursor.close()
         if conn: conn.close()
 
-        # --- 마이페이지 관련 (My Page DAO) ---
+def add_ingredient(user_id, name, quantity):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        # 재료 ID 찾기 (없으면 INGREDIENT에 먼저 추가)
+        cursor.execute("SELECT ingredient_id FROM INGREDIENT WHERE name = :1", (name,))
+        res = cursor.fetchone()
+        
+        if res:
+            ing_id = res[0]
+        else:
+            # 새 재료 추가 및 ID 반환
+            ing_id_var = cursor.var(int)
+            cursor.execute("INSERT INTO INGREDIENT (name) VALUES (:1) RETURNING ingredient_id INTO :2", [name, ing_id_var])
+            ing_id = ing_id_var.getvalue()[0]
+        # 2. 내 냉장고에 존재 여부 확인 후 UPDATE 또는 INSERT
+        check_sql = "SELECT 1 FROM USER_INGREDIENT WHERE user_id = :1 AND ingredient_id = :2"
+        cursor.execute(check_sql, (user_id, ing_id))
+        exists = cursor.fetchone() is not None
+
+        if exists:
+            update_sql = "UPDATE USER_INGREDIENT SET quantity = :1 WHERE user_id = :2 AND ingredient_id = :3"
+            cursor.execute(update_sql, (quantity, user_id, ing_id))
+        else:
+            insert_sql = "INSERT INTO USER_INGREDIENT (user_id, ingredient_id, quantity) VALUES (:1, :2, :3)"
+            cursor.execute(insert_sql, (user_id, ing_id, quantity))
+        conn.commit()
+        return True
+    except oracledb.Error as e:
+        print(f"재료 추가 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+def get_user_ingredients(user_id):
+    conn = get_db_conn()
+    if not conn: return []
+    
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT ui.user_ingredient_id, i.name AS ingredientname, ui.quantity 
+            FROM USER_INGREDIENT ui 
+            JOIN INGREDIENT i ON ui.ingredient_id = i.ingredient_id 
+            WHERE ui.user_id = :1
+        """
+        cursor.execute(sql, (user_id,))
+        
+        # 결과를 딕셔너리 리스트로 변환
+        if cursor.description:
+            columns = [col[0].lower() for col in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return []
+    except oracledb.Error as e:
+        print(f"냉장고 조회 오류: {e}")
+        return []
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
 
 def get_my_recipes(user_id):
     """내가 작성한 레시피 목록"""
