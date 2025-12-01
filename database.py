@@ -195,3 +195,77 @@ def get_my_favorites(user_id):
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+
+# mypage: 사용자 정보 불러오기, 닉네임 수정, 비밀번호 수정, 회원 탈퇴
+def get_user_info(user_id):
+    conn = get_db_conn()
+    if not conn: return None
+    
+    cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id, nickname FROM USER_T WHERE user_id = :1"
+        cursor.execute(sql, (user_id,))
+        result = cursor.fetchone()
+        if result:
+            return {'user_id': result[0], 'nickname': result[1]}
+        return None
+    except oracledb.Error as e:
+        print(f"사용자 정보 조회 오류: {e}")
+        return None
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+def update_nickname(user_id, new_nickname):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        sql = "UPDATE USER_T SET nickname = :1 WHERE user_id = :2"
+        cursor.execute(sql, (new_nickname, user_id))
+        conn.commit()
+        return True
+    except oracledb.Error as e:
+        print(f"닉네임 수정 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+def update_password(user_id, new_password):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        sql = "UPDATE USER_T SET password = :1 WHERE user_id = :2"
+        cursor.execute(sql, (new_password, user_id))
+        conn.commit()
+        return True
+    except oracledb.Error as e:
+        print(f"비밀번호 수정 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+def delete_user(user_id):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        # 현재 회원의 정보만 삭제. 연관된 데이터 삭제 (예: 댓글, 레시피 등)는 정책에 따라 추가 필요.
+        cursor.execute("DELETE FROM USER_T WHERE user_id = :1", (user_id,))
+        conn.commit()
+        return True
+    except oracledb.Error as e:
+        print(f"회원 탈퇴 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
