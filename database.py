@@ -438,6 +438,73 @@ def search_recipes(keyword=None, author=None, recipe_way=None, recipe_type=None,
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+def create_recipe(user_id, title, description, type_id, way_id, 
+                  cal, carbo, protein, fat, natrium, 
+                  ingredients_data, steps_data):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        # RECIPE 테이블 삽입
+        recipe_id_var = cursor.var(int)
+        
+        sql_recipe = """
+            INSERT INTO RECIPE (
+                title, description, author_id, 
+                recipe_type_id, recipe_way_id, 
+                info_calories, info_carbohydrate, info_protein, info_fat, info_natrium
+            ) VALUES (
+                :1, :2, :3, :4, :5, :6, :7, :8, :9, :10
+            ) RETURNING recipe_id INTO :11
+        """
+        cursor.execute(sql_recipe, (
+            title, description, user_id, 
+            type_id, way_id, 
+            cal, carbo, protein, fat, natrium,
+            recipe_id_var
+        ))
+        
+        recipe_id = recipe_id_var.getvalue()[0]
+        
+        # 2. 재료 삽입 (RECIPE_INGREDIENT)
+        for ing in ingredients_data:
+            name = ing['name']
+            amount = ing['amount']
+            
+            # 재료 ID 조회 (없으면 생성)
+            cursor.execute("SELECT ingredient_id FROM INGREDIENT WHERE name = :1", (name,))
+            res = cursor.fetchone()
+            if res:
+                ing_id = res[0]
+            else:
+                ing_id_var = cursor.var(int)
+                cursor.execute("INSERT INTO INGREDIENT (name) VALUES (:1) RETURNING ingredient_id INTO :2", [name, ing_id_var])
+                ing_id = ing_id_var.getvalue()[0]
+            
+            # 레시피-재료 연결
+            cursor.execute("""
+                INSERT INTO RECIPE_INGREDIENT (recipe_id, ingredient_id, amount)
+                VALUES (:1, :2, :3)
+            """, (recipe_id, ing_id, amount))
+
+        # 3. 조리 순서 삽입 (COOKING_STEP)
+        for idx, instruction in enumerate(steps_data):
+            step_num = idx + 1
+            cursor.execute("""
+                INSERT INTO COOKING_STEP (recipe_id, step_number, instruction)
+                VALUES (:1, :2, :3)
+            """, (recipe_id, step_num, instruction))
+            
+        conn.commit()
+        return recipe_id
+    except Exception as e:
+        print(f"레시피 등록 실패: {e}")
+        conn.rollback()
+        return None
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
 
 def get_recipe_detail(recipe_id):
     conn = get_db_conn()
