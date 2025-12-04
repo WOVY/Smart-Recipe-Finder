@@ -214,3 +214,228 @@ def get_my_favorites(user_id):
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+
+# mypage: 사용자 정보 불러오기, 닉네임 수정, 비밀번호 수정, 회원 탈퇴
+def get_user_info(user_id):
+    conn = get_db_conn()
+    if not conn: return None
+    
+    cursor = conn.cursor()
+    try:
+        sql = "SELECT user_id, nickname FROM USER_T WHERE user_id = :1"
+        cursor.execute(sql, (user_id,))
+        result = cursor.fetchone()
+        if result:
+            return {'user_id': result[0], 'nickname': result[1]}
+        return None
+    except oracledb.Error as e:
+        print(f"사용자 정보 조회 오류: {e}")
+        return None
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+def update_nickname(user_id, new_nickname):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        sql = "UPDATE USER_T SET nickname = :1 WHERE user_id = :2"
+        cursor.execute(sql, (new_nickname, user_id))
+        conn.commit()
+        return True
+    except oracledb.Error as e:
+        print(f"닉네임 수정 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+def update_password(user_id, new_password):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        sql = "UPDATE USER_T SET password = :1 WHERE user_id = :2"
+        cursor.execute(sql, (new_password, user_id))
+        conn.commit()
+        return True
+    except oracledb.Error as e:
+        print(f"비밀번호 수정 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+def delete_user(user_id):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        # 현재 회원의 정보만 삭제. 연관된 데이터 삭제 (예: 댓글, 레시피 등)는 정책에 따라 추가 필요.
+        cursor.execute("DELETE FROM USER_T WHERE user_id = :1", (user_id,))
+        conn.commit()
+        return True
+    except oracledb.Error as e:
+        print(f"회원 탈퇴 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+
+def search_recipes(keyword=None, author=None, recipe_way=None, recipe_type=None,
+                   calories_min=None, calories_max=None,
+                   carbohydrate_min=None, carbohydrate_max=None,
+                   protein_min=None, protein_max=None,
+                   fat_min=None, fat_max=None,
+                   natrium_min=None, natrium_max=None,
+                   include_ingredient=None, exclude_ingredient=None):
+    """
+    레시피 검색 함수
+    
+    기본 검색:
+    - keyword: 레시피 제목 검색
+    - author: 작성자 닉네임 검색
+    - recipe_way: 조리 방법 (예: '끓이기', '볶기' 등)
+    - recipe_type: 요리 종류 (예: '밥', '국&찌개' 등)
+    
+    세부 검색 (영양 정보 범위):
+    - calories_min, calories_max: 칼로리 범위
+    - carbohydrate_min, carbohydrate_max: 탄수화물 범위
+    - protein_min, protein_max: 단백질 범위
+    - fat_min, fat_max: 지방 범위
+    - natrium_min, natrium_max: 나트륨 범위
+    
+    재료 필터:
+    - include_ingredient: 포함해야 할 재료
+    - exclude_ingredient: 제외할 재료
+    """
+    conn = get_db_conn()
+    if not conn: return []
+    
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT R.recipe_id, R.title, U.nickname, RW.way_name, RT.type_name, 
+                   R.info_calories, R.info_carbohydrate, R.info_protein, 
+                   R.info_fat, R.info_natrium
+            FROM RECIPE R 
+            JOIN USER_T U ON R.author_id = U.user_id 
+            JOIN RECIPE_WAY RW ON R.recipe_way_id = RW.recipe_way_id 
+            JOIN RECIPE_TYPE RT ON R.recipe_type_id = RT.recipe_type_id
+            WHERE 1=1
+        """
+        params = []
+        param_idx = 1
+        
+        # 기본 검색 조건
+        if keyword:
+            sql += f" AND R.title LIKE :{param_idx}"
+            params.append(f"%{keyword}%")
+            param_idx += 1
+            
+        if author:
+            sql += f" AND U.nickname LIKE :{param_idx}"
+            params.append(f"%{author}%")
+            param_idx += 1
+            
+        if recipe_way:
+            sql += f" AND RW.way_name = :{param_idx}"
+            params.append(recipe_way)
+            param_idx += 1
+            
+        if recipe_type:
+            sql += f" AND RT.type_name = :{param_idx}"
+            params.append(recipe_type)
+            param_idx += 1
+        
+        # 세부 검색 조건 (영양 정보 범위)
+        if calories_min is not None:
+            sql += f" AND R.info_calories >= :{param_idx}"
+            params.append(calories_min)
+            param_idx += 1
+            
+        if calories_max is not None:
+            sql += f" AND R.info_calories <= :{param_idx}"
+            params.append(calories_max)
+            param_idx += 1
+            
+        if carbohydrate_min is not None:
+            sql += f" AND R.info_carbohydrate >= :{param_idx}"
+            params.append(carbohydrate_min)
+            param_idx += 1
+            
+        if carbohydrate_max is not None:
+            sql += f" AND R.info_carbohydrate <= :{param_idx}"
+            params.append(carbohydrate_max)
+            param_idx += 1
+            
+        if protein_min is not None:
+            sql += f" AND R.info_protein >= :{param_idx}"
+            params.append(protein_min)
+            param_idx += 1
+            
+        if protein_max is not None:
+            sql += f" AND R.info_protein <= :{param_idx}"
+            params.append(protein_max)
+            param_idx += 1
+            
+        if fat_min is not None:
+            sql += f" AND R.info_fat >= :{param_idx}"
+            params.append(fat_min)
+            param_idx += 1
+            
+        if fat_max is not None:
+            sql += f" AND R.info_fat <= :{param_idx}"
+            params.append(fat_max)
+            param_idx += 1
+            
+        if natrium_min is not None:
+            sql += f" AND R.info_natrium >= :{param_idx}"
+            params.append(natrium_min)
+            param_idx += 1
+            
+        if natrium_max is not None:
+            sql += f" AND R.info_natrium <= :{param_idx}"
+            params.append(natrium_max)
+            param_idx += 1
+        
+        # 재료 포함 조건
+        if include_ingredient:
+            sql += f""" AND EXISTS (
+                SELECT 1 FROM RECIPE_INGREDIENT RI
+                JOIN INGREDIENT I ON RI.ingredient_id = I.ingredient_id
+                WHERE RI.recipe_id = R.recipe_id AND I.name = :{param_idx}
+            )"""
+            params.append(include_ingredient)
+            param_idx += 1
+        
+        # 재료 제외 조건
+        if exclude_ingredient:
+            sql += f""" AND NOT EXISTS (
+                SELECT 1 FROM RECIPE_INGREDIENT RI
+                JOIN INGREDIENT I ON RI.ingredient_id = I.ingredient_id
+                WHERE RI.recipe_id = R.recipe_id AND I.name = :{param_idx}
+            )"""
+            params.append(exclude_ingredient)
+            param_idx += 1
+        
+        cursor.execute(sql, params)
+        
+        if cursor.description:
+            columns = [col[0].lower() for col in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return []
+    except oracledb.Error as e:
+        print(f"레시피 검색 오류: {e}")
+        return []
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()

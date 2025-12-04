@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-4">
+    <!-- 검색 폼 -->
+    <form action="/search" method="get" class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+        <!-- 기본 검색 -->
+        <div class="space-y-3 mb-4">
+            <div class="relative">
+                <input type="text" name="keyword" value="{{ request.args.get('keyword', '') }}" 
+                    placeholder="레시피 이름 검색..."
+                    class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                <i data-lucide="search" class="absolute left-3 top-3.5 text-gray-400 w-5 h-5"></i>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input type="text" name="author" value="{{ request.args.get('author', '') }}" 
+                    placeholder="작성자"
+                    class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                
+                <!-- 조리 방법 선택 -->
+                <select name="recipe_way" 
+                    class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                    <option value="">조리 방법</option>
+
+                    {# 목록 정의 (HTML 파일 상단이나 여기에 두면 됩니다) #}
+                    {% set ways = [
+                        '굽기', '기타', '끓이기', '볶기', '찌기', '튀기기', '조림', '무침', '데치기', '삶기', 
+                        '절임', '젓갈', '비빔', '볶아 끓이기', '튀겨 무치기', '삶아 으깨기', '다지기', '편썰기', '채썰기', '갈기', 
+                        '반죽하기', '수제', '다림', '삭힘', '불리기', '재우기', '숙성', '발효', '훈제', '건조', 
+                        '직화구이', '숯불구이', '오븐구이', '간접구이', '토치 그을리기', '센불 볶음', '약불 조림', '쪄서 굽기', '튀겨 조리기', '데쳐 무치기', 
+                        '쪄서 말리기', '갈아 끓이기', '끓여 식히기', '그릴링', '베이킹', '브로일링', '코팅', '수분 증발', '해동', '불에 달구기', 
+                        '훈연하기', '염장하기', '당절임', '저온 조리', '수비드', '팬 시어링', '딥 프라잉', '에어 프라잉', '압력 조리', '슬로우 쿠킹', 
+                        '블렌딩', '유화', '캐러멜라이징', '마리네이드', '브레이징', '포칭', '소테', '로스팅', '스팀', '꼬치 꿰기', 
+                        '절구 찧기', '틀에 굳히기', '짜기', '휘젓기', '얇게 펴기', '급속 냉동', '얼려 갈기', '즙 내기', '말리기', '풍건', 
+                        '햇볕에 말리기', '불맛 입히기', '겉바속촉 튀김', '육즙 가두기', '뜸들이기', '식히기', '냉각', '맷돌 분쇄', '장작불 조리', '약불에 은은하게', 
+                        '센불에 빠르게', '돌판 구이', '대나무통 찜', '가마솥 조리', '볏짚 훈연', '돌솥 조리', '냉채', '생식', '회', '정제'
+                    ] %}
+
+                    {# 반복문으로 옵션 생성 (선택된 항목 유지 기능 포함) #}
+                    {% for way in ways %}
+                        <option value="{{ way }}" {{ 'selected' if request.args.get('recipe_way') == way }}>
+                            {{ way }}
+                        </option>
+                    {% endfor %}
+                </select>
+                
+                <!-- 요리 종류 선택 -->
+                <select name="recipe_type" 
+                    class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm">
+                    <option value="">요리 종류</option>
+
+                    {# 목록 정의 #}
+                    {% set types = [
+                        '국,찌개', '기타', '반찬', '밥', '일품', '후식', '샐러드', '메인요리', '디저트', '간식', 
+                        '안주', '분식', '베이커리', '음료/주류', '김치', '나물', '볶음', '조림', '찜', '튀김', 
+                        '구이', '전', '탕', '궁중요리', '향토요리', '명절음식', '길거리음식', '전통주안주', '와인안주', 
+                        '맥주안주', '소주안주', '이유식', '환자식', '사찰음식', '채소위주', '육류위주', '해물위주', 
+                        '갑각류요리', '면요리', '떡/한과', '만두/피자', '덮밥', '볶음밥', '비빔밥', '김밥', '죽/스프', 
+                        '샌드위치', '그라탕', '리조또', '퓨전요리', '건강식', '보양식', '다이어트식', '채식/비건', 
+                        '키토제닉', '저염식', '고단백식', '글루텐프리', '저탄수화물', '전통음식', '발효음식', '제철음식', 
+                        '로컬푸드', '파인다이닝', '컨템포러리', '오마카세', '타파스', '페어링', '칵테일', '1인분요리', 
+                        '오피스간식', '소울푸드', '상차림', '코스요리', '브런치', '파티음식', '피크닉/도시락', '캠핑요리', 
+                        '손님초대요리', '수험생 영양식', '어린이 간식', '노인식', '이색요리', '현대요리', '추억의 음식', '집밥', 
+                        '자취요리', '신혼요리', '인기메뉴', '밀키트', '편의점 조합', '배달음식', '심야식당', '가성비요리', 
+                        '프리미엄요리', '경양식', '패스트푸드', '슬로우푸드', '전골', '해장요리'
+                    ] %}
+
+                    {# 반복문으로 옵션 생성 #}
+                    {% for type in types %}
+                        <option value="{{ type }}" {{ 'selected' if request.args.get('recipe_type') == type }}>
+                            {{ type }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- 세부 검색 토글 -->
+        <div class="border-t border-gray-200 pt-3">
+            <button type="button" onclick="toggleAdvancedSearch()" 
+                class="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-orange-500 transition">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                세부 검색
+                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="advancedSearchIcon"></i>
+            </button>
+
+            <!-- 세부 검색 영역 -->
+            <div id="advancedSearch" class="hidden mt-4 space-y-3">
+                <div class="space-y-3">
+                    <!-- 칼로리 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <label class="text-xs font-medium text-gray-700 w-20 flex-shrink-0">칼로리</label>
+                        <div class="flex items-center gap-2 flex-1">
+                            <input type="number" name="calories_min" value="{{ request.args.get('calories_min', '') }}" 
+                                placeholder="최소" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-gray-500 text-sm">~</span>
+                            <input type="number" name="calories_max" value="{{ request.args.get('calories_max', '') }}" 
+                                placeholder="최대" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-xs text-gray-500 whitespace-nowrap w-8 text-right">kcal</span>
+                        </div>
+                    </div>
+
+                    <!-- 탄수화물 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <label class="text-xs font-medium text-gray-700 w-20 flex-shrink-0">탄수화물</label>
+                        <div class="flex items-center gap-2 flex-1">
+                            <input type="number" name="carbohydrate_min" value="{{ request.args.get('carbohydrate_min', '') }}" 
+                                placeholder="최소" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-gray-500 text-sm">~</span>
+                            <input type="number" name="carbohydrate_max" value="{{ request.args.get('carbohydrate_max', '') }}" 
+                                placeholder="최대" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-xs text-gray-500 whitespace-nowrap w-8 text-right">g</span>
+                        </div>
+                    </div>
+
+                    <!-- 단백질 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <label class="text-xs font-medium text-gray-700 w-20 flex-shrink-0">단백질</label>
+                        <div class="flex items-center gap-2 flex-1">
+                            <input type="number" name="protein_min" value="{{ request.args.get('protein_min', '') }}" 
+                                placeholder="최소" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-gray-500 text-sm">~</span>
+                            <input type="number" name="protein_max" value="{{ request.args.get('protein_max', '') }}" 
+                                placeholder="최대" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-xs text-gray-500 whitespace-nowrap w-8 text-right">g</span>
+                        </div>
+                    </div>
+
+                    <!-- 지방 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <label class="text-xs font-medium text-gray-700 w-20 flex-shrink-0">지방</label>
+                        <div class="flex items-center gap-2 flex-1">
+                            <input type="number" name="fat_min" value="{{ request.args.get('fat_min', '') }}" 
+                                placeholder="최소" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-gray-500 text-sm">~</span>
+                            <input type="number" name="fat_max" value="{{ request.args.get('fat_max', '') }}" 
+                                placeholder="최대" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-xs text-gray-500 whitespace-nowrap w-8 text-right">g</span>
+                        </div>
+                    </div>
+
+                    <!-- 나트륨 -->
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <label class="text-xs font-medium text-gray-700 w-20 flex-shrink-0">나트륨</label>
+                        <div class="flex items-center gap-2 flex-1">
+                            <input type="number" name="natrium_min" value="{{ request.args.get('natrium_min', '') }}" 
+                                placeholder="최소" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-gray-500 text-sm">~</span>
+                            <input type="number" name="natrium_max" value="{{ request.args.get('natrium_max', '') }}" 
+                                placeholder="최대" class="w-full sm:flex-1 px-2 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                            <span class="text-xs text-gray-500 whitespace-nowrap w-8 text-right">mg</span>
+                        </div>
+                    </div>
+
+                    <!-- 재료 포함/제외 -->
+                    <div class="border-t border-gray-200 pt-3 mt-3 space-y-3">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-xs font-medium text-gray-700 w-20 flex-shrink-0">재료 포함</label>
+                            <input type="text" name="include_ingredient" value="{{ request.args.get('include_ingredient', '') }}" 
+                                placeholder="예: 닭고기"
+                                class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                        
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <label class="text-xs font-medium text-gray-700 w-20 flex-shrink-0">재료 제외</label>
+                            <input type="text" name="exclude_ingredient" value="{{ request.args.get('exclude_ingredient', '') }}" 
+                                placeholder="예: 새우"
+                                class="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 검색 버튼 -->
+        <div class="flex gap-2 mt-4">
+            <button type="submit" 
+                class="flex-1 bg-orange-500 text-white py-2.5 rounded-xl font-bold hover:bg-orange-600 transition text-sm">
+                🔍 검색
+            </button>
+            <a href="/search" 
+                class="px-4 sm:px-6 bg-gray-100 text-gray-600 py-2.5 rounded-xl font-bold hover:bg-gray-200 transition text-sm whitespace-nowrap">
+                초기화
+            </a>
+        </div>
+
+        <!-- 퀵 액세스 버튼 -->
+        <div class="flex gap-2 mt-3 overflow-x-auto pb-2 scrollbar-hide">
+            <a href="/search?mode=fridge"
+                class="px-4 py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition border {{ 'bg-orange-500 text-white border-orange-500' if title == '냉장고 파먹기 결과' else 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+                🥘 냉장고 파먹기
+            </a>
+            <a href="/search"
+                class="px-4 py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition border {{ 'bg-gray-800 text-white border-gray-800' if title == '전체 레시피' and not request.args.get('keyword') else 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50' }}">
+                전체 보기
+            </a>
+        </div>
+    </form>
+
+    <h2 class="text-lg font-bold text-gray-800 px-1">{{ title }} <span class="text-sm font-normal text-gray-500">({{
+            recipes|length }})</span></h2>
+
+    <!-- 레시피 리스트 -->
+    <div class="space-y-3">
+        {% if recipes %}
+        {% for r in recipes %}
+        <a href="/recipe/{{ r.recipe_id }}"
+            class="block bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+            <div class="flex justify-between items-start mb-1">
+                <h3 class="font-bold text-lg text-gray-800 line-clamp-1">{{ r.title }}</h3>
+                <span class="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-md font-medium whitespace-nowrap">{{
+                    r.info_calories }} kcal</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+                <span class="bg-gray-100 px-2 py-0.5 rounded text-xs">{{ r.type_name }}</span>
+                <span class="bg-gray-100 px-2 py-0.5 rounded text-xs">{{ r.way_name }}</span>
+                <span class="text-xs text-gray-400">| By {{ r.nickname }}</span>
+            </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="text-center py-10">
+            <div class="text-4xl mb-2">🤔</div>
+            <p class="text-gray-500">조건에 맞는 레시피가 없습니다.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleAdvancedSearch() {
+    const advancedSearch = document.getElementById('advancedSearch');
+    const icon = document.getElementById('advancedSearchIcon');
+    
+    if (advancedSearch.classList.contains('hidden')) {
+        advancedSearch.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        advancedSearch.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const advancedFields = [
+        'calories_min', 'calories_max',
+        'carbohydrate_min', 'carbohydrate_max',
+        'protein_min', 'protein_max',
+        'fat_min', 'fat_max',
+        'natrium_min', 'natrium_max',
+        'include_ingredient', 'exclude_ingredient'
+    ];
+
+    const hasAdvancedParams = advancedFields.some(param => {
+        const value = urlParams.get(param);
+        return value !== null && value.trim() !== '';
+    });
+
+    if (hasAdvancedParams) {
+        toggleAdvancedSearch();
+    }
+});
+
+</script>
+{% endblock %}
