@@ -1,76 +1,245 @@
-{% extends 'base.html' %}
-
-{% block content %}
+{% extends 'base.html' %} {% block content %}
 <div class="space-y-6 pb-10">
+  <div class="grid grid-cols-1 gap-4">
+    <a
+      href="/recipe/write"
+      class="bg-gray-900 text-white rounded-2xl p-4 flex items-center justify-between shadow-lg hover:bg-gray-800 transition"
+    >
+      <div>
+        <h3 class="font-bold">나만의 레시피 공유하기</h3>
+        <p class="text-xs text-gray-400">당신의 요리 비법을 알려주세요!</p>
+      </div>
+      <div class="bg-gray-800 p-2 rounded-full">
+        <i data-lucide="pen-tool" class="w-5 h-5"></i>
+      </div>
+    </a>
 
-    <!-- 배너 -->
     <div
-        class="bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-        <div class="relative z-10">
-            <h2 class="text-2xl font-bold mb-1">냉장고 파먹기 🥘</h2>
-            <p class="text-orange-50 text-sm mb-4">내 재료로 만들 수 있는 요리 찾기</p>
-            <a href="/search?mode=fridge"
-                class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold hover:bg-white/30 transition inline-flex items-center gap-1">
-                바로가기 <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </a>
-        </div>
-        <i data-lucide="utensils" class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10"></i>
-    </div>
-
-    <!-- 메뉴 그리드 -->
-    <div class="grid grid-cols-2 gap-4">
-        <a href="/fridge"
-            class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:shadow-md transition group">
-            <div
-                class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
-                <span class="text-2xl">🧊</span>
-            </div>
-            <h3 class="font-bold text-gray-800">나의 냉장고</h3>
-            <p class="text-xs text-gray-500 mt-1">재료 관리하기</p>
+      class="bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
+    >
+      <div class="relative z-10">
+        <h2 class="text-2xl font-bold mb-1">냉장고 파먹기 🥘</h2>
+        <p class="text-orange-50 text-sm mb-4">
+          내 재료로 만들 수 있는 요리 찾기
+        </p>
+        <a
+          href="/search?mode=fridge"
+          class="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold hover:bg-white/30 transition inline-flex items-center gap-1"
+        >
+          바로가기 <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </a>
-        <a href="/search"
-            class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:shadow-md transition group">
-            <div
-                class="bg-green-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition">
-                <span class="text-2xl">🔍</span>
-            </div>
-            <h3 class="font-bold text-gray-800">레시피 검색</h3>
-            <p class="text-xs text-gray-500 mt-1">조건별 찾아보기</p>
-        </a>
+      </div>
+      <i
+        data-lucide="utensils"
+        class="absolute -right-4 -bottom-4 w-32 h-32 text-white/10"
+      ></i>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-4">
+    <a
+      href="/fridge"
+      class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:shadow-md transition group"
+    >
+      <div
+        class="bg-blue-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition"
+      >
+        <span class="text-2xl">🧊</span>
+      </div>
+      <h3 class="font-bold text-gray-800">나의 냉장고</h3>
+      <p class="text-xs text-gray-500 mt-1">재료 관리하기</p>
+    </a>
+    <a
+      href="/search"
+      class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 text-center hover:shadow-md transition group"
+    >
+      <div
+        class="bg-green-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition"
+      >
+        <span class="text-2xl">🔍</span>
+      </div>
+      <h3 class="font-bold text-gray-800">레시피 검색</h3>
+      <p class="text-xs text-gray-500 mt-1">조건별 찾아보기</p>
+    </a>
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mt-6">
+    <h3 class="font-bold text-gray-800 flex items-center gap-2 mb-4">
+      <i data-lucide="trophy" class="w-4 h-4 text-yellow-500"></i> 인기 차트 TOP
+      5
+    </h3>
+
+    <div class="flex border-b border-gray-100 mb-4">
+      <button
+        onclick="switchTab('fav')"
+        id="tab-fav"
+        class="flex-1 pb-2 text-sm font-bold text-orange-500 border-b-2 border-orange-500 transition"
+      >
+        즐겨찾기 순
+      </button>
+      <button
+        onclick="switchTab('com')"
+        id="tab-com"
+        class="flex-1 pb-2 text-sm font-medium text-gray-400 transition"
+      >
+        댓글 많은 순
+      </button>
     </div>
 
-    <!-- 즐겨찾기 바로가기 -->
-    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                <i data-lucide="heart" class="w-4 h-4 text-red-500 fill-current"></i> 나의 즐겨찾기
-            </h3>
-            <a href="/search?mode=favorite" class="text-xs text-gray-500 hover:text-orange-500">전체보기</a>
+    <div id="list-fav" class="space-y-3">
+      {% for r in top_favorites %}
+      <a
+        href="/recipe/{{ r.recipe_id }}"
+        class="flex items-center justify-between group py-1"
+      >
+        <div class="flex items-center gap-3 overflow-hidden">
+          <span
+            class="text-lg font-bold italic w-4 {{ 'text-orange-500' if loop.index <= 3 else 'text-gray-300' }}"
+            >{{ loop.index }}</span
+          >
+          <span
+            class="text-sm font-medium text-gray-700 truncate group-hover:text-orange-600"
+            >{{ r.title }}</span
+          >
         </div>
-        <p class="text-sm text-gray-400">저장된 레시피를 확인해보세요.</p>
-    </div>
-    <!-- 내가 쓴 레시피 -->
-
-    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                <i data-lucide="edit-3" class="w-4 h-4 text-orange-500"></i> 내가 작성한 레시피
-            </h3>
-            <a href="/search?mode=favorite" class="text-xs text-gray-500 hover:text-orange-500">전체보기</a>
+        <div
+          class="flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap"
+        >
+          <i data-lucide="heart" class="w-3 h-3"></i> {{ r.cnt }}
         </div>
-        <p class="text-sm text-gray-400">작성한 레시피를 확인해보세요.</p>
+      </a>
+      {% else %}
+      <p class="text-xs text-gray-400 text-center py-4">데이터가 없습니다.</p>
+      {% endfor %}
     </div>
-    <!-- 내가 쓴 댓글 -->
 
-    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-        <div class="flex justify-between items-center mb-3">
-            <h3 class="font-bold text-gray-800 flex items-center gap-2">
-                <i data-lucide="message-circle" class="w-4 h-4 text-blue-500"></i> 내가 작성한 댓글
-            </h3>
-            <a href="/search?mode=favorite" class="text-xs text-gray-500 hover:text-orange-500">전체보기</a>
+    <div id="list-com" class="space-y-3 hidden">
+      {% for r in top_comments %}
+      <a
+        href="/recipe/{{ r.recipe_id }}"
+        class="flex items-center justify-between group py-1"
+      >
+        <div class="flex items-center gap-3 overflow-hidden">
+          <span
+            class="text-lg font-bold italic w-4 {{ 'text-blue-500' if loop.index <= 3 else 'text-gray-300' }}"
+            >{{ loop.index }}</span
+          >
+          <span
+            class="text-sm font-medium text-gray-700 truncate group-hover:text-blue-600"
+            >{{ r.title }}</span
+          >
         </div>
-        <p class="text-sm text-gray-400">작성한 댓글을 확인해보세요.</p>
+        <div
+          class="flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap"
+        >
+          <i data-lucide="message-circle" class="w-3 h-3"></i> {{ r.cnt }}
+        </div>
+      </a>
+      {% else %}
+      <p class="text-xs text-gray-400 text-center py-4">데이터가 없습니다.</p>
+      {% endfor %}
     </div>
+  </div>
 
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mt-6">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="font-bold text-gray-800 flex items-center gap-2">
+        <i data-lucide="star" class="w-4 h-4 text-yellow-400"></i> 나의 즐겨찾기
+      </h3>
+      <a
+        href="/my/favorites"
+        class="text-xs text-gray-500 hover:text-orange-500"
+        >전체보기</a
+      >
+    </div>
+    {% for fav in favorites[:3] %}
+    <a
+      href="/recipe/{{ fav.recipe_id }}"
+      class="block p-3 bg-gray-50 rounded-xl hover:bg-orange-50 transition mb-2 last:mb-0"
+    >
+      <div class="font-bold text-gray-800 text-sm mb-1 truncate">
+        {{ fav.title }}
+      </div>
+      <div class="text-xs text-gray-400">
+        {{ fav.type_name }} | {{ fav.way_name }}
+      </div>
+    </a>
+    {% else %}
+    <p class="text-sm text-gray-400">아직 즐겨찾기한 레시피가 없어요.</p>
+    {% endfor %}
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mt-4">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="font-bold text-gray-800 flex items-center gap-2">
+        <i data-lucide="edit-3" class="w-4 h-4 text-orange-500"></i> 내가 작성한
+        레시피
+      </h3>
+      <a href="/my/recipes" class="text-xs text-gray-500 hover:text-orange-500"
+        >전체보기</a
+      >
+    </div>
+    {% for r in my_recipes[:3] %}
+    <a
+      href="/recipe/{{ r.recipe_id }}"
+      class="block p-3 bg-gray-50 rounded-xl hover:bg-orange-50 transition mb-2 last:mb-0"
+    >
+      <div class="font-bold text-gray-800 text-sm truncate">{{ r.title }}</div>
+      <div class="text-xs text-gray-400 mt-1">
+        {{ r.type_name }} | {{ r.way_name }}
+      </div>
+    </a>
+    {% else %}
+    <p class="text-sm text-gray-400">아직 작성한 레시피가 없어요.</p>
+    {% endfor %}
+  </div>
+
+  <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mt-4">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="font-bold text-gray-800 flex items-center gap-2">
+        <i data-lucide="message-circle" class="w-4 h-4 text-blue-500"></i> 내가
+        작성한 댓글
+      </h3>
+      <a href="/my/comments" class="text-xs text-gray-500 hover:text-orange-500"
+        >전체보기</a
+      >
+    </div>
+    {% for c in my_comments[:3] %}
+    <a
+      href="/recipe/{{ c.recipe_id }}"
+      class="block p-3 bg-gray-50 rounded-xl hover:bg-orange-50 transition mb-2 last:mb-0"
+    >
+      <div class="text-sm text-gray-700 truncate">“{{ c.content }}”</div>
+      <div class="text-xs text-gray-400 mt-1">{{ c.title }}</div>
+    </a>
+    {% else %}
+    <p class="text-sm text-gray-400">아직 작성한 댓글이 없어요.</p>
+    {% endfor %}
+  </div>
 </div>
+
+<script>
+  function switchTab(type) {
+    const tabFav = document.getElementById("tab-fav");
+    const tabCom = document.getElementById("tab-com");
+    const listFav = document.getElementById("list-fav");
+    const listCom = document.getElementById("list-com");
+
+    if (type === "fav") {
+      tabFav.className =
+        "flex-1 pb-2 text-sm font-bold text-orange-500 border-b-2 border-orange-500 transition";
+      tabCom.className =
+        "flex-1 pb-2 text-sm font-medium text-gray-400 transition";
+      listFav.classList.remove("hidden");
+      listCom.classList.add("hidden");
+    } else {
+      tabFav.className =
+        "flex-1 pb-2 text-sm font-medium text-gray-400 transition";
+      tabCom.className =
+        "flex-1 pb-2 text-sm font-bold text-blue-500 border-b-2 border-blue-500 transition";
+      listFav.classList.add("hidden");
+      listCom.classList.remove("hidden");
+    }
+  }
+</script>
 {% endblock %}

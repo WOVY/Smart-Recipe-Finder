@@ -439,3 +439,53 @@ def search_recipes(keyword=None, author=None, recipe_way=None, recipe_type=None,
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+
+
+# TOP 5 조회
+def get_top5_favorites():
+    conn = get_db_conn()
+    if not conn: return []
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT * FROM (
+                SELECT R.recipe_id, R.title, COUNT(F.user_id) as cnt, RT.type_name
+                FROM RECIPE R
+                JOIN RECIPE_TYPE RT ON R.recipe_type_id = RT.recipe_type_id
+                LEFT JOIN FAVORITE F ON R.recipe_id = F.recipe_id
+                GROUP BY R.recipe_id, R.title, RT.type_name
+                ORDER BY cnt DESC, R.recipe_id DESC
+            ) WHERE ROWNUM <= 5
+        """
+        cursor.execute(sql)
+        if cursor.description:
+            columns = [col[0].lower() for col in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return []
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_top5_comments():
+    conn = get_db_conn()
+    if not conn: return []
+    cursor = conn.cursor()
+    try:
+        sql = """
+            SELECT * FROM (
+                SELECT R.recipe_id, R.title, COUNT(C.comment_id) as cnt, RT.type_name
+                FROM RECIPE R
+                JOIN RECIPE_TYPE RT ON R.recipe_type_id = RT.recipe_type_id
+                LEFT JOIN COMMENT_T C ON R.recipe_id = C.recipe_id
+                GROUP BY R.recipe_id, R.title, RT.type_name
+                ORDER BY cnt DESC, R.recipe_id DESC
+            ) WHERE ROWNUM <= 5
+        """
+        cursor.execute(sql)
+        if cursor.description:
+            columns = [col[0].lower() for col in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return []
+    finally:
+        cursor.close()
+        conn.close()

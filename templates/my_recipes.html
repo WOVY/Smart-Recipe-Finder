@@ -1,0 +1,30 @@
+{% extends 'base.html' %} {% block content %}
+<div class="space-y-4">
+  <div class="flex items-center gap-2 mb-4">
+    <button onclick="history.back()" class="p-1">
+      <i data-lucide="arrow-left"></i>
+    </button>
+    <h2 class="text-xl font-bold">내가 작성한 레시피</h2>
+  </div>
+  {% for r in my_recipes %}
+  <a
+    href="/recipe/{{ r.recipe_id }}"
+    class="block bg-white p-4 rounded-xl shadow-sm border border-gray-100"
+  >
+    <h3 class="font-bold text-gray-800">{{ r.title }}</h3>
+    <p class="text-xs text-gray-500 mt-1">
+      {{ r.type_name }} | {{ r.way_name }}
+    </p>
+  </a>
+  {% else %}
+  <p class="text-center text-gray-500 py-10">작성한 레시피가 없습니다.</p>
+  {% endfor %}
+
+  <a
+    href="/recipe/write"
+    class="block w-full text-center bg-orange-500 text-white py-3 rounded-xl font-bold mt-4"
+  >
+    새 레시피 작성하기
+  </a>
+</div>
+{% endblock %}

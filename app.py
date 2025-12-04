@@ -8,18 +8,41 @@ app.config.from_object(config)
 @app.route('/')
 def index():
     if 'user_id' in session:
-        user_id = session['user_id']
-        # DB에서 데이터 가져오기
-        my_recipes = db.get_my_recipes(user_id)
-        my_comments = db.get_my_comments(user_id)
-        my_favorites = db.get_my_favorites(user_id)
+        favorites = db.get_my_favorites(session['user_id'])
+        my_recipes = db.get_my_recipes(session['user_id'])
+        my_comments = db.get_my_comments(session['user_id'])
         
-        # HTML에 데이터 전달
-        return render_template('index.html', 
-                             my_recipes=my_recipes, 
-                             my_comments=my_comments, 
-                             my_favorites=my_favorites)
+        top_favorites = db.get_top5_favorites()
+        top_comments = db.get_top5_comments()
+
+        return render_template('index.html',
+                               favorites=favorites,
+                               my_recipes=my_recipes,
+                               my_comments=my_comments,
+                               top_favorites=top_favorites,
+                               top_comments=top_comments)
     return redirect(url_for('login'))
+
+# 내 즐겨찾기 목록
+@app.route('/my/favorites')
+def my_favorites():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    favorites = db.get_my_favorites(session['user_id'])
+    return render_template('my_favorites.html', favorites=favorites)
+
+# 내 레시피 목록
+@app.route('/my/recipes')
+def my_recipes():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    my_recipes = db.get_my_recipes(session['user_id'])
+    return render_template('my_recipes.html', my_recipes=my_recipes)
+
+# 내 댓글 목록
+@app.route('/my/comments')
+def my_comments():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    my_comments = db.get_my_comments(session['user_id'])
+    return render_template('my_comments.html', my_comments=my_comments)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
