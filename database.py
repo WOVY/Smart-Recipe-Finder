@@ -98,6 +98,25 @@ def add_ingredient(user_id, name, quantity):
         if cursor: cursor.close()
         if conn: conn.close()
 
+def delete_ingredient(user_id, user_ing_id):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM USER_INGREDIENT WHERE user_ingredient_id = :1 AND user_id = :2", (user_ing_id, user_id))
+        conn.commit()
+        return True
+    except oracledb.Error as e:
+        print(f"재료 삭제 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 def get_user_ingredients(user_id):
     conn = get_db_conn()
     if not conn: return []

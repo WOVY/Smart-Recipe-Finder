@@ -71,6 +71,13 @@ def fridge():
 
     return render_template('fridge.html', ingredients=ingredients)
 
+# 냉장고 재료 삭제
+@app.route('/fridge/delete/<int:id>')
+def delete_ingredient(id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    db.delete_ingredient(session['user_id'], id)
+    flash('재료가 삭제되었습니다.', 'success')
+    return redirect(url_for('fridge'))
 # mypage: 사용자 정보 불러오기, 닉네임 수정, 비밀번호 수정, 회원 탈퇴
 @app.route('/mypage')
 def mypage():
