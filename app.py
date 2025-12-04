@@ -94,6 +94,58 @@ def fridge():
 
     return render_template('fridge.html', ingredients=ingredients)
 
+# 레시피 작성
+@app.route('/recipe/write', methods=['GET', 'POST'])
+def write_recipe():
+    if 'user_id' not in session: return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        
+        way_name = request.form.get('recipe_way')
+        type_name = request.form.get('recipe_type')
+        
+        way_id = db.get_id_by_name('RECIPE_WAY', 'RECIPE_WAY_ID', 'WAY_NAME', way_name)
+        type_id = db.get_id_by_name('RECIPE_TYPE', 'RECIPE_TYPE_ID', 'TYPE_NAME', type_name)
+        
+        # 영양정보
+        def get_float(val): return float(val) if val and val.strip() else None
+        
+        cal = get_float(request.form.get('calories'))
+        carbo = get_float(request.form.get('carbohydrate'))
+        prot = get_float(request.form.get('protein'))
+        fat = get_float(request.form.get('fat'))
+        na = get_float(request.form.get('natrium'))
+        
+        # 재료 목록
+        ing_names = request.form.getlist('ing_name[]')
+        ing_amounts = request.form.getlist('ing_amount[]')
+        ingredients = []
+        for n, a in zip(ing_names, ing_amounts):
+            if n.strip():
+                ingredients.append({'name': n, 'amount': a})
+                
+        # 조리 단계
+        steps = request.form.getlist('step[]')
+        steps = [s for s in steps if s.strip()]
+        
+        if not way_id or not type_id:
+            flash('조리 방법 또는 종류를 정확히 선택해주세요.', 'error')
+            return redirect(url_for('write_recipe'))
+
+        new_id = db.create_recipe(session['user_id'], title, description, 
+                                  type_id, way_id, cal, carbo, prot, fat, na, 
+                                  ingredients, steps)
+        
+        if new_id:
+            flash('레시피가 등록되었습니다!', 'success')
+            return redirect(url_for('recipe_detail', recipe_id=new_id))
+        else:
+            flash('레시피 등록 실패', 'error')
+            
+    return render_template('write_recipe.html')
+
 # 냉장고 재료 삭제
 @app.route('/fridge/delete/<int:id>')
 def delete_ingredient(id):
