@@ -289,7 +289,6 @@ def delete_user(user_id):
         if cursor: cursor.close()
         if conn: conn.close()
 
-
 def search_recipes(keyword=None, author=None, recipe_way=None, recipe_type=None,
                    calories_min=None, calories_max=None,
                    carbohydrate_min=None, carbohydrate_max=None,
@@ -440,6 +439,79 @@ def search_recipes(keyword=None, author=None, recipe_way=None, recipe_type=None,
         if cursor: cursor.close()
         if conn: conn.close()
 
+def get_recipe_detail(recipe_id):
+    conn = get_db_conn()
+    if not conn: return None
+    
+    cursor = conn.cursor()
+    data = {}
+    try:
+        # 기본 정보
+        cursor.execute("""
+            SELECT R.*, U.nickname, RW.way_name, RT.type_name 
+            FROM RECIPE R 
+            JOIN USER_T U ON R.author_id = U.user_id 
+            JOIN RECIPE_WAY RW ON R.recipe_way_id = RW.recipe_way_id 
+            JOIN RECIPE_TYPE RT ON R.recipe_type_id = RT.recipe_type_id 
+            WHERE R.recipe_id = :1
+        """, (recipe_id,))
+        
+        row = cursor.fetchone()
+        if not row: return None
+        
+        col_basic = [col[0].lower() for col in cursor.description]
+        data['info'] = dict(zip(col_basic, row))
+
+        # 재료
+        cursor.execute("""
+            SELECT I.name, RI.amount 
+            FROM RECIPE_INGREDIENT RI
+            JOIN INGREDIENT I ON RI.ingredient_id = I.ingredient_id
+            WHERE RI.recipe_id = :1
+        """, (recipe_id,))
+        
+        if cursor.description:
+            col_ing = [col[0].lower() for col in cursor.description]
+            data['ingredients'] = [dict(zip(col_ing, r)) for r in cursor.fetchall()]
+        else:
+            data['ingredients'] = []
+
+        # 조리 단계
+        cursor.execute("SELECT step_number, instruction FROM COOKING_STEP WHERE recipe_id = :1 ORDER BY step_number", (recipe_id,))
+        if cursor.description:
+            col_steps = [col[0].lower() for col in cursor.description]
+            steps_raw = cursor.fetchall()
+            
+            cleaned_steps = []
+            for r in steps_raw:
+                step_dict = dict(zip(col_steps, r))
+                step_dict['instruction'] = re.sub(r'^\d+\.\s*', '', step_dict['instruction'])
+                cleaned_steps.append(step_dict)
+                
+            data['steps'] = cleaned_steps
+        else:
+            data['steps'] = []
+
+        # 댓글
+        cursor.execute("""
+            SELECT C.comment_id, C.user_id, C.content, C.created_date, U.nickname 
+            FROM COMMENT_T C 
+            JOIN USER_T U ON C.user_id = U.user_id 
+            WHERE C.recipe_id = :1 ORDER BY C.created_date DESC
+        """, (recipe_id,))
+        if cursor.description:
+            col_comments = [col[0].lower() for col in cursor.description]
+            data['comments'] = [dict(zip(col_comments, r)) for r in cursor.fetchall()]
+        else:
+            data['comments'] = []
+
+        return data
+    except oracledb.Error as e:
+        print(f"레시피 상세 오류: {e}")
+        return None
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
 
 # TOP 5 조회
 def get_top5_favorites():

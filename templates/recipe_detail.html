@@ -1,0 +1,101 @@
+{% extends 'base.html' %} {% block content %}
+<div class="mb-4">
+    <button onclick="goBack()" class="flex items-center text-gray-500 hover:text-gray-800">
+        <i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i> 목록으로
+    </button>
+</div>
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-6 border-b border-gray-100 bg-gradient-to-br from-white to-orange-50 relative">
+        <div class="flex gap-2 mb-3">
+            <span class="px-2 py-1 bg-orange-100 text-orange-600 text-xs font-bold rounded">{{ detail.info.type_name
+                }}</span>
+            <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded">{{ detail.info.way_name
+                }}</span>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-900 mb-2 pr-28 sm:pr-32">
+            {{ detail.info.title }}
+        </h1>
+        <p class="text-sm text-gray-500">By {{ detail.info.nickname }}</p>
+
+        {% if detail.info.description %}
+        <p class="mt-4 text-gray-600 text-sm leading-relaxed bg-white p-3 rounded-lg border border-gray-100">
+            {{ detail.info.description }}
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-5 gap-1 p-4 bg-white text-center border-b border-gray-100">
+        <div>
+            <div class="text-[10px] text-gray-400 mb-1">열량</div>
+            <div class="font-bold text-sm">{{ detail.info.info_calories|int }}</div>
+        </div>
+        <div>
+            <div class="text-[10px] text-gray-400 mb-1">탄수</div>
+            <div class="font-bold text-sm">{{ detail.info.info_carbohydrate }}g</div>
+        </div>
+        <div>
+            <div class="text-[10px] text-gray-400 mb-1">단백</div>
+            <div class="font-bold text-sm">{{ detail.info.info_protein }}g</div>
+        </div>
+        <div>
+            <div class="text-[10px] text-gray-400 mb-1">지방</div>
+            <div class="font-bold text-sm">{{ detail.info.info_fat }}g</div>
+        </div>
+        <div>
+            <div class="text-[10px] text-gray-400 mb-1">나트륨</div>
+            <div class="font-bold text-sm">{{ detail.info.info_natrium|int }}</div>
+        </div>
+    </div>
+
+    <div class="p-6">
+        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <i data-lucide="utensils" class="w-5 h-5 text-orange-500"></i> 재료
+        </h3>
+        <ul class="space-y-2 mb-8 text-sm">
+            {% for ing in detail.ingredients %}
+            <li class="flex justify-between border-b border-gray-50 pb-2">
+                <span class="text-gray-700">{{ ing.name }}</span>
+                <span class="text-gray-500 font-medium">{{ ing.amount }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <i data-lucide="flame" class="w-5 h-5 text-orange-500"></i> 조리 순서
+        </h3>
+        <div class="space-y-4 mb-8">
+            {% for step in detail.steps %}
+            <div class="flex gap-3">
+                <span
+                    class="bg-orange-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                    {{ step.step_number }}
+                </span>
+                <p class="text-sm text-gray-700 leading-relaxed">
+                    {{ step.instruction }}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <i data-lucide="message-circle" class="w-5 h-5 text-orange-500"></i> 댓글
+        </h3>
+        <div class="space-y-3 mb-4">
+            {% for c in detail.comments %}
+            <div class="bg-gray-50 p-3 rounded-xl text-sm relative group">
+                <div class="flex justify-between mb-1">
+                    <strong class="text-gray-700">{{ c.nickname }}</strong>
+                    <span class="text-xs text-gray-400">{{ c.created_date }}</span>
+                </div>
+                <p class="text-gray-600">{{ c.content }}</p>
+            </div>
+            {% else %}
+            <p class="text-center text-gray-400 text-sm py-2">
+                아직 댓글이 없습니다.
+            </p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} ```

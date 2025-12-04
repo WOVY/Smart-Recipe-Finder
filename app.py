@@ -101,6 +101,7 @@ def delete_ingredient(id):
     db.delete_ingredient(session['user_id'], id)
     flash('재료가 삭제되었습니다.', 'success')
     return redirect(url_for('fridge'))
+
 # mypage: 사용자 정보 불러오기, 닉네임 수정, 비밀번호 수정, 회원 탈퇴
 @app.route('/mypage')
 def mypage():
@@ -229,6 +230,19 @@ def search():
             title = "검색 결과"
         
     return render_template('search.html', recipes=recipes, title=title)
+
+# 레시피 상세 조회
+@app.route('/recipe/<int:recipe_id>')
+def recipe_detail(recipe_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    
+    detail = db.get_recipe_detail(recipe_id)
+    if not detail:
+        flash('레시피를 찾을 수 없습니다.', 'error')
+        return redirect(url_for('index'))
+    
+    return render_template('recipe_detail.html', detail=detail)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
