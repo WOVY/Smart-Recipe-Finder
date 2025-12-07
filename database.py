@@ -151,10 +151,9 @@ def get_my_recipes(user_id):
     cursor = conn.cursor()
     try:
         sql = """
-            SELECT recipe_id, title, info_calories, created_date 
+            SELECT recipe_id, title, info_calories
             FROM RECIPE 
             WHERE author_id = :1 
-            ORDER BY created_date DESC
         """
         cursor.execute(sql, (user_id,))
         columns = [col[0].lower() for col in cursor.description]
@@ -174,11 +173,10 @@ def get_my_comments(user_id):
     cursor = conn.cursor()
     try:
         sql = """
-            SELECT C.content, C.created_date, R.recipe_id, R.title 
+            SELECT C.content, R.recipe_id, R.title 
             FROM COMMENT_T C
             JOIN RECIPE R ON C.recipe_id = R.recipe_id
             WHERE C.user_id = :1 
-            ORDER BY C.created_date DESC
         """
         cursor.execute(sql, (user_id,))
         columns = [col[0].lower() for col in cursor.description]
@@ -561,11 +559,12 @@ def get_recipe_detail(recipe_id):
 
         # 댓글
         cursor.execute("""
-            SELECT C.comment_id, C.user_id, C.content, C.created_date, U.nickname 
+            SELECT C.comment_id, C.user_id, C.content, U.nickname 
             FROM COMMENT_T C 
             JOIN USER_T U ON C.user_id = U.user_id 
-            WHERE C.recipe_id = :1 ORDER BY C.created_date DESC
+            WHERE C.recipe_id = :1
         """, (recipe_id,))
+        
         if cursor.description:
             col_comments = [col[0].lower() for col in cursor.description]
             data['comments'] = [dict(zip(col_comments, r)) for r in cursor.fetchall()]
