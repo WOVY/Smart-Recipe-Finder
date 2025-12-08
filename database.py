@@ -151,9 +151,12 @@ def get_my_recipes(user_id):
     cursor = conn.cursor()
     try:
         sql = """
-            SELECT recipe_id, title, info_calories
-            FROM RECIPE 
-            WHERE author_id = :1 
+            SELECT R.recipe_id, R.title, RT.type_name, RW.way_name
+            FROM RECIPE R
+            JOIN RECIPE_TYPE RT ON R.recipe_type_id = RT.recipe_type_id
+            JOIN RECIPE_WAY RW ON R.recipe_way_id = RW.recipe_way_id
+            WHERE R.author_id = :1
+            ORDER BY R.recipe_id DESC
         """
         cursor.execute(sql, (user_id,))
         columns = [col[0].lower() for col in cursor.description]
@@ -176,7 +179,8 @@ def get_my_comments(user_id):
             SELECT C.content, R.recipe_id, R.title 
             FROM COMMENT_T C
             JOIN RECIPE R ON C.recipe_id = R.recipe_id
-            WHERE C.user_id = :1 
+            WHERE C.user_id = :1
+            ORDER BY C.created_date DESC
         """
         cursor.execute(sql, (user_id,))
         columns = [col[0].lower() for col in cursor.description]
@@ -197,11 +201,13 @@ def get_my_favorites(user_id):
     try:
         # FAVORITE 테이블이 있다고 가정
         sql = """
-            SELECT R.recipe_id, R.title, U.nickname, R.info_calories
+            SELECT R.recipe_id, R.title, RT.type_name, RW.way_name
             FROM FAVORITE F
             JOIN RECIPE R ON F.recipe_id = R.recipe_id
-            JOIN USER_T U ON R.author_id = U.user_id
+            JOIN RECIPE_TYPE RT ON R.recipe_type_id = RT.recipe_type_id
+            JOIN RECIPE_WAY RW ON R.recipe_way_id = RW.recipe_way_id
             WHERE F.user_id = :1
+            ORDER BY F.created_date DESC
         """
         cursor.execute(sql, (user_id,))
         columns = [col[0].lower() for col in cursor.description]

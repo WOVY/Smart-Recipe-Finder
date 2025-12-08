@@ -5,3 +5,4 @@ __pycache__/
 # 환경 설정 파일 무시
 config.py
 .env
+.DS_Store
