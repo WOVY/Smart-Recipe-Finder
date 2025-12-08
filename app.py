@@ -146,6 +146,90 @@ def write_recipe():
             
     return render_template('write_recipe.html')
 
+# 레시피 수정
+@app.route('/recipe/<int:recipe_id>/edit', methods=['GET', 'POST'])
+def edit_recipe(recipe_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    
+    # 기존 레시피 정보 조회 (get_recipe_detail 재사용)
+    recipe = db.get_recipe_detail(recipe_id)
+    if not recipe:
+        flash('레시피를 찾을 수 없습니다.', 'error')
+        return redirect(url_for('my_recipes'))
+    
+    # 작성자 권한 확인
+    if recipe['info']['author_id'] != session['user_id']:
+        flash('수정 권한이 없습니다.', 'error')
+        return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+    
+    if request.method == 'POST':
+        title = request.form.get('title')
+        description = request.form.get('description')
+        
+        way_name = request.form.get('recipe_way')
+        type_name = request.form.get('recipe_type')
+        
+        way_id = db.get_id_by_name('RECIPE_WAY', 'RECIPE_WAY_ID', 'WAY_NAME', way_name)
+        type_id = db.get_id_by_name('RECIPE_TYPE', 'RECIPE_TYPE_ID', 'TYPE_NAME', type_name)
+        
+        # 영양정보
+        def get_float(val): return float(val) if val and val.strip() else None
+        
+        cal = get_float(request.form.get('calories'))
+        carbo = get_float(request.form.get('carbohydrate'))
+        prot = get_float(request.form.get('protein'))
+        fat = get_float(request.form.get('fat'))
+        na = get_float(request.form.get('natrium'))
+        
+        # 재료 목록
+        ing_names = request.form.getlist('ing_name[]')
+        ing_amounts = request.form.getlist('ing_amount[]')
+        ingredients = []
+        for n, a in zip(ing_names, ing_amounts):
+            if n.strip():
+                ingredients.append({'name': n, 'amount': a})
+                
+        # 조리 단계
+        steps = request.form.getlist('step[]')
+        steps = [s for s in steps if s.strip()]
+        
+        if not way_id or not type_id:
+            flash('조리 방법 또는 종류를 정확히 선택해주세요.', 'error')
+            return redirect(url_for('edit_recipe', recipe_id=recipe_id))
+
+        if db.update_recipe(recipe_id, title, description, 
+                           type_id, way_id, cal, carbo, prot, fat, na, 
+                           ingredients, steps):
+            flash('레시피가 수정되었습니다!', 'success')
+            return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+        else:
+            flash('레시피 수정 실패', 'error')
+            
+    return render_template('edit_recipe.html', recipe=recipe)
+
+# 레시피 삭제
+@app.route('/recipe/<int:recipe_id>/delete', methods=['POST'])
+def delete_recipe(recipe_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    
+    # 레시피 정보 조회
+    recipe = db.get_recipe_detail(recipe_id)
+    if not recipe:
+        flash('레시피를 찾을 수 없습니다.', 'error')
+        return redirect(url_for('my_recipes'))
+    
+    # 작성자 권한 확인
+    if recipe['info']['author_id'] != session['user_id']:
+        flash('삭제 권한이 없습니다.', 'error')
+        return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+    
+    if db.delete_recipe(recipe_id):
+        flash('레시피가 삭제되었습니다.', 'success')
+        return redirect(url_for('my_recipes'))
+    else:
+        flash('레시피 삭제에 실패했습니다.', 'error')
+        return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+
 # 냉장고 재료 삭제
 @app.route('/fridge/delete/<int:id>')
 def delete_ingredient(id):
