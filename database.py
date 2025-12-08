@@ -442,6 +442,21 @@ def search_recipes(keyword=None, author=None, recipe_way=None, recipe_type=None,
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+
+# 조리방법, 요리종류 이름으로 ID 조회
+def get_id_by_name(table_name, id_col, name_col, value):
+    conn = get_db_conn()
+    if not conn: return None
+    cursor = conn.cursor()
+    try:
+        sql = f"SELECT {id_col} FROM {table_name} WHERE {name_col} = :1"
+        cursor.execute(sql, (value,))
+        result = cursor.fetchone()
+        return result[0] if result else None
+    finally:
+        cursor.close()
+        conn.close()
+
 def create_recipe(user_id, title, description, type_id, way_id, 
                   cal, carbo, protein, fat, natrium, 
                   ingredients_data, steps_data):
@@ -510,6 +525,114 @@ def create_recipe(user_id, title, description, type_id, way_id,
         if cursor: cursor.close()
         if conn: conn.close()
 
+# 레시피 수정
+def update_recipe(recipe_id, title, description, type_id, way_id, 
+                  cal, carbo, protein, fat, natrium, 
+                  ingredients_data, steps_data):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        # 1. 기본 정보 업데이트
+        sql_update = """
+            UPDATE RECIPE SET
+                title = :1,
+                description = :2,
+                recipe_type_id = :3,
+                recipe_way_id = :4,
+                info_calories = :5,
+                info_carbohydrate = :6,
+                info_protein = :7,
+                info_fat = :8,
+                info_natrium = :9
+            WHERE recipe_id = :10
+        """
+        cursor.execute(sql_update, (
+            title, description, type_id, way_id,
+            cal, carbo, protein, fat, natrium,
+            recipe_id
+        ))
+        
+        # 2. 기존 재료 삭제
+        cursor.execute("DELETE FROM RECIPE_INGREDIENT WHERE recipe_id = :1", (recipe_id,))
+        
+        # 3. 재료 재삽입
+        for ing in ingredients_data:
+            name = ing['name']
+            amount = ing['amount']
+            
+            # 재료 ID 조회 (없으면 생성)
+            cursor.execute("SELECT ingredient_id FROM INGREDIENT WHERE name = :1", (name,))
+            res = cursor.fetchone()
+            if res:
+                ing_id = res[0]
+            else:
+                ing_id_var = cursor.var(int)
+                cursor.execute("INSERT INTO INGREDIENT (name) VALUES (:1) RETURNING ingredient_id INTO :2", [name, ing_id_var])
+                ing_id = ing_id_var.getvalue()[0]
+            
+            # 레시피-재료 연결
+            cursor.execute("""
+                INSERT INTO RECIPE_INGREDIENT (recipe_id, ingredient_id, amount)
+                VALUES (:1, :2, :3)
+            """, (recipe_id, ing_id, amount))
+        
+        # 4. 기존 조리 순서 삭제
+        cursor.execute("DELETE FROM COOKING_STEP WHERE recipe_id = :1", (recipe_id,))
+        
+        # 5. 조리 순서 재삽입
+        for idx, instruction in enumerate(steps_data):
+            step_num = idx + 1
+            cursor.execute("""
+                INSERT INTO COOKING_STEP (recipe_id, step_number, instruction)
+                VALUES (:1, :2, :3)
+            """, (recipe_id, step_num, instruction))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"레시피 수정 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# 레시피 삭제
+def delete_recipe(recipe_id):
+    conn = get_db_conn()
+    if not conn: return False
+    
+    cursor = conn.cursor()
+    try:
+        # CASCADE 설정이 되어있다면 자동으로 삭제되지만, 명시적으로 삭제
+        # 1. 댓글 삭제
+        cursor.execute("DELETE FROM COMMENT_T WHERE recipe_id = :1", (recipe_id,))
+        
+        # 2. 즐겨찾기 삭제
+        cursor.execute("DELETE FROM FAVORITE WHERE recipe_id = :1", (recipe_id,))
+        
+        # 3. 조리 순서 삭제
+        cursor.execute("DELETE FROM COOKING_STEP WHERE recipe_id = :1", (recipe_id,))
+        
+        # 4. 재료 연결 삭제
+        cursor.execute("DELETE FROM RECIPE_INGREDIENT WHERE recipe_id = :1", (recipe_id,))
+        
+        # 5. 레시피 삭제
+        cursor.execute("DELETE FROM RECIPE WHERE recipe_id = :1", (recipe_id,))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"레시피 삭제 실패: {e}")
+        conn.rollback()
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# 레시피 상세 조회
 def get_recipe_detail(recipe_id):
     conn = get_db_conn()
     if not conn: return None

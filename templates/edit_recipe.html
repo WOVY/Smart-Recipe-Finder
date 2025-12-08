@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex items-center gap-2">
+        <button onclick="history.back()" class="p-2 hover:bg-gray-100 rounded-full">
+            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </button>
+        <h2 class="text-xl font-bold text-gray-800">레시피 수정</h2>
+    </div>
+
+    <form action="/recipe/{{ recipe.info.recipe_id }}/edit" method="post" class="space-y-6">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+            <h3 class="font-bold flex items-center gap-2"><i data-lucide="info" class="w-4 h-4 text-orange-500"></i> 기본
+                정보</h3>
+            <input type="text" name="title" placeholder="레시피 제목 (예: 소고기 미역국)" required
+                value="{{ recipe.info.title }}"
+                class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+            <textarea name="description" placeholder="요리 소개를 간단히 작성해주세요." rows="3"
+                class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">{{ recipe.info.description or '' }}</textarea>
+
+            <div class="grid grid-cols-2 gap-3">
+                <select name="recipe_way" required class="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                    <option value="">조리 방법</option>
+                    <option value="끓이기" {% if recipe.info.way_name == '끓이기' %}selected{% endif %}>끓이기</option>
+                    <option value="볶기" {% if recipe.info.way_name == '볶기' %}selected{% endif %}>볶기</option>
+                    <option value="굽기" {% if recipe.info.way_name == '굽기' %}selected{% endif %}>굽기</option>
+                    <option value="튀기기" {% if recipe.info.way_name == '튀기기' %}selected{% endif %}>튀기기</option>
+                    <option value="찌기" {% if recipe.info.way_name == '찌기' %}selected{% endif %}>찌기</option>
+                    <option value="기타" {% if recipe.info.way_name == '기타' %}selected{% endif %}>기타</option>
+                </select>
+                <select name="recipe_type" required class="p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                    <option value="">요리 종류</option>
+                    <option value="국,찌개" {% if recipe.info.type_name == '국,찌개' %}selected{% endif %}>국,찌개</option>
+                    <option value="반찬" {% if recipe.info.type_name == '반찬' %}selected{% endif %}>반찬</option>
+                    <option value="밥" {% if recipe.info.type_name == '밥' %}selected{% endif %}>밥</option>
+                    <option value="일품" {% if recipe.info.type_name == '일품' %}selected{% endif %}>일품</option>
+                    <option value="면요리" {% if recipe.info.type_name == '후식' %}selected{% endif %}>후식</option>
+                    <option value="기타" {% if recipe.info.type_name == '기타' %}selected{% endif %}>기타</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+            <h3 class="font-bold flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-orange-500"></i>
+                영양 정보</h3>
+            <div class="grid grid-cols-3 gap-3">
+                <input type="number" name="calories" placeholder="칼로리(kcal)" 
+                    value="{{ recipe.info.info_calories|int if recipe.info.info_calories else '' }}"
+                    class="p-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                <input type="number" name="carbohydrate" placeholder="탄수화물(g)" 
+                    value="{{ recipe.info.info_carbohydrate if recipe.info.info_carbohydrate else '' }}"
+                    class="p-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                <input type="number" name="protein" placeholder="단백질(g)" 
+                    value="{{ recipe.info.info_protein if recipe.info.info_protein else '' }}"
+                    class="p-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                <input type="number" name="fat" placeholder="지방(g)" 
+                    value="{{ recipe.info.info_fat if recipe.info.info_fat else '' }}"
+                    class="p-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
+                <input type="number" name="natrium" placeholder="나트륨(mg)" 
+                    value="{{ recipe.info.info_natrium|int if recipe.info.info_natrium else '' }}"
+                    class="p-2 bg-gray-50 rounded-lg text-sm border border-gray-200">
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold flex items-center gap-2"><i data-lucide="carrot"
+                        class="w-4 h-4 text-orange-500"></i> 재료</h3>
+                <button type="button" onclick="addIngredient()"
+                    class="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200">+ 추가</button>
+            </div>
+            <div id="ingredient-list" class="space-y-2">
+                {% for ing in recipe.ingredients %}
+                <div class="flex gap-2">
+                    <input type="text" name="ing_name[]" placeholder="예: 돼지고기" 
+                        value="{{ ing.name }}"
+                        class="w-16 flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <input type="text" name="ing_amount[]" placeholder="예: 300g" 
+                        value="{{ ing.amount }}"
+                        class="w-24 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold flex items-center gap-2"><i data-lucide="list-ordered"
+                        class="w-4 h-4 text-orange-500"></i> 조리 순서</h3>
+                <button type="button" onclick="addStep()"
+                    class="text-xs bg-gray-100 px-2 py-1 rounded hover:bg-gray-200">+ 추가</button>
+            </div>
+            <div id="step-list" class="space-y-2">
+                {% for step in recipe.steps %}
+                <div class="flex gap-2 items-start">
+                    <span class="mt-2 text-sm font-bold text-orange-500">{{ step.step_number }}</span>
+                    <textarea name="step[]" placeholder="조리 순서를 입력하세요." rows="2"
+                        class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200">{{ step.instruction }}</textarea>
+                    <button type="button" onclick="removeStep(this)" class="mt-2 text-red-400 hover:text-red-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <button type="submit"
+            class="w-full bg-orange-500 text-white font-bold py-4 rounded-xl hover:bg-orange-600 shadow-lg transition transform active:scale-95">
+            레시피 수정하기
+        </button>
+    </form>
+</div>
+
+<script>
+    function addIngredient() {
+        const div = document.createElement('div');
+        div.className = 'flex gap-2';
+        div.innerHTML = `
+        <input type="text" name="ing_name[]" placeholder="재료명" class="w-16 flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200">
+        <input type="text" name="ing_amount[]" placeholder="수량" class="w-24 p-2 bg-gray-50 rounded-lg border border-gray-200">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+    `;
+        document.getElementById('ingredient-list').appendChild(div);
+        lucide.createIcons();
+    }
+
+    function addStep() {
+        const list = document.getElementById('step-list');
+        const count = list.children.length + 1;
+        const div = document.createElement('div');
+        div.className = 'flex gap-2 items-start';
+        div.innerHTML = `
+        <span class="mt-2 text-sm font-bold text-orange-500">${count}</span>
+        <textarea name="step[]" placeholder="조리 순서를 입력하세요." rows="2" class="flex-1 p-2 bg-gray-50 rounded-lg border border-gray-200"></textarea>
+        <button type="button" onclick="removeStep(this)" class="mt-2 text-red-400 hover:text-red-600"><i data-lucide="x" class="w-4 h-4"></i></button>
+    `;
+        list.appendChild(div);
+        lucide.createIcons();
+    }
+
+    function removeStep(btn) {
+        btn.parentElement.remove();
+        const list = document.getElementById('step-list');
+        Array.from(list.children).forEach((child, idx) => {
+            child.querySelector('span').innerText = idx + 1;
+        });
+    }
+    
+    // 페이지 로드 시 아이콘 초기화
+    document.addEventListener('DOMContentLoaded', function() {
+        lucide.createIcons();
+    });
+</script>
+{% endblock %}
