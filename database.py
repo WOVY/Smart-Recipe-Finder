@@ -723,3 +723,41 @@ def delete_comment(comment_id, user_id):
     finally:
         if cursor: cursor.close()
         if conn: conn.close()
+
+
+# 즐겨찾기 토글
+def toggle_favorite(recipe_id, user_id):
+    conn = get_db_conn()
+    if not conn: return None
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute("SELECT 1 FROM FAVORITE WHERE recipe_id = :1 AND user_id = :2", (recipe_id, user_id))
+        if cursor.fetchone():
+            # 있으면 삭제
+            cursor.execute("DELETE FROM FAVORITE WHERE recipe_id = :1 AND user_id = :2", (recipe_id, user_id))
+            action = "removed"
+        else:
+            # 없으면 추가
+            cursor.execute("INSERT INTO FAVORITE (recipe_id, user_id) VALUES (:1, :2)", (recipe_id, user_id))
+            action = "added"
+        conn.commit()
+        return action
+    except oracledb.Error as e:
+        print(f"즐겨찾기 추가/삭제 실패: {e}")
+        return False
+    finally:
+        if cursor: cursor.close()
+        if conn: conn.close()
+
+# 즐겨찾기 여부 확인
+def is_favorited(recipe_id, user_id):
+    conn = get_db_conn()
+    if not conn: return False
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT 1 FROM FAVORITE WHERE recipe_id = :1 AND user_id = :2", (recipe_id, user_id))
+        return cursor.fetchone() is not None
+    finally:
+        cursor.close()
+        conn.close()
