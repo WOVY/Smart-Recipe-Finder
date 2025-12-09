@@ -275,14 +275,43 @@ def update_password(user_id, new_password):
         if cursor: cursor.close()
         if conn: conn.close()
 
+# 회원 탈퇴
 def delete_user(user_id):
     conn = get_db_conn()
     if not conn: return False
     
     cursor = conn.cursor()
     try:
-        # 현재 회원의 정보만 삭제. 연관된 데이터 삭제 (예: 댓글, 레시피 등)는 정책에 따라 추가 필요.
+        # 1. 사용자가 작성한 레시피들의 ID 조회
+        cursor.execute("SELECT recipe_id FROM RECIPE WHERE author_id = :1", (user_id,))
+        recipe_ids = [row[0] for row in cursor.fetchall()]
+        
+        # 2. 각 레시피에 대한 관련 데이터 삭제
+        for recipe_id in recipe_ids:
+            # 레시피의 댓글 삭제
+            cursor.execute("DELETE FROM COMMENT_T WHERE recipe_id = :1", (recipe_id,))
+            # 레시피의 즐겨찾기 삭제
+            cursor.execute("DELETE FROM FAVORITE WHERE recipe_id = :1", (recipe_id,))
+            # 레시피의 조리 순서 삭제
+            cursor.execute("DELETE FROM COOKING_STEP WHERE recipe_id = :1", (recipe_id,))
+            # 레시피의 재료 연결 삭제
+            cursor.execute("DELETE FROM RECIPE_INGREDIENT WHERE recipe_id = :1", (recipe_id,))
+        
+        # 3. 사용자가 작성한 레시피 삭제
+        cursor.execute("DELETE FROM RECIPE WHERE author_id = :1", (user_id,))
+        
+        # 4. 사용자가 작성한 댓글 삭제 (다른 레시피에 단 댓글)
+        cursor.execute("DELETE FROM COMMENT_T WHERE user_id = :1", (user_id,))
+        
+        # 5. 사용자의 즐겨찾기 삭제
+        cursor.execute("DELETE FROM FAVORITE WHERE user_id = :1", (user_id,))
+        
+        # 6. 사용자의 냉장고 재료 삭제
+        cursor.execute("DELETE FROM USER_INGREDIENT WHERE user_id = :1", (user_id,))
+        
+        # 7. 사용자 계정 삭제
         cursor.execute("DELETE FROM USER_T WHERE user_id = :1", (user_id,))
+        
         conn.commit()
         return True
     except oracledb.Error as e:

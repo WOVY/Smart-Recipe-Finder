@@ -377,8 +377,24 @@ def recipe_detail(recipe_id):
         flash('레시피를 찾을 수 없습니다.', 'error')
         return redirect(url_for('index'))
     
-    return render_template('recipe_detail.html', detail=detail)
+    is_favorite = db.is_favorited(recipe_id, session['user_id'])
+    return render_template('recipe_detail.html', detail=detail, is_favorite=is_favorite)
 
+# 즐겨찾기 등록 / 해제
+@app.route('/recipe/<int:recipe_id>/favorite', methods=['POST'])
+def toggle_favorite(recipe_id):
+    if 'user_id' not in session: return redirect(url_for('login'))
+    
+    action = db.toggle_favorite(recipe_id, session['user_id'])
+    
+    if action == 'added':
+        flash('나의 즐겨찾기에 저장되었습니다.', 'success')
+    elif action == 'removed':
+        flash('즐겨찾기가 해제되었습니다.', 'info')
+    else:
+        flash('오류가 발생했습니다.', 'error')
+    
+    return redirect(url_for('recipe_detail', recipe_id=recipe_id))
 
 # 댓글 작성
 @app.route('/recipe/<int:recipe_id>/comment', methods=['POST'])
